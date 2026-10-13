@@ -1,0 +1,10 @@
+@font-face{font-family:Survival;src:url('assets/oswald.ttf') format('truetype');font-weight:200 700;font-display:swap}
+.timer-heading{font-size:min(2.08vw,34px)}.timer-rule{font-size:min(3vw,49px)}.timer-digits{font-size:min(12.5vw,218px)}
+.relief .embossed{font-family:Survival,Bahnschrift,'Arial Narrow',Arial,sans-serif;font-weight:600;
+  text-shadow:0 -.005em 0 #fff6d6,.005em .005em 0 #9a8f75,.01em .01em 0 #887b61,.015em .015em 0 #76684e,.02em .02em 0 #64563e,.025em .025em 0 #51432e,.03em .03em 0 #3c3022,.035em .045em .015em #0a0908,.055em .075em .08em #000;
+  -webkit-text-stroke:.002em #dcd0b0;color:#eadfc7;filter:none}
+.relief .timer-heading{font-size:min(2.08vw,36px);letter-spacing:.115em;text-shadow:0 -.03em 0 #fff0c3,.03em .03em 0 #9c8967,.06em .06em 0 #70603f,.09em .09em 0 #4b3b25,.12em .15em .06em #0b0805,.18em .24em .27em #000}
+.relief .timer-digits{font-weight:650;letter-spacing:.075em;font-size:min(13.8vw,230px);line-height:1.12}
+.relief .timer-rule{font-size:min(3vw,49px);color:#d7b774;letter-spacing:.12em;text-shadow:0 -.02em 0 #fff3b8,.02em .02em 0 #ab8848,.04em .04em 0 #947039,.06em .06em 0 #75542c,.08em .08em 0 #513b21,.1em .12em .04em #0e0a05,.16em .2em .22em #000}
+.relief .timer-rule .plus{color:inherit}
+.offline{position:absolute;bottom:2%;left:50%;transform:translateX(-50%);font:12px Arial,sans-serif;color:#d4b981;background:#101510d9;padding:3px 8px;border-radius:3px;white-space:nowrap}

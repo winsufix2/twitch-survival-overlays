@@ -1,0 +1,12 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "twitch-survival-overlays",
+  "main": "cloud/worker.mjs",
+  "compatibility_date": "2026-10-13",
+  "workers_dev": true,
+  "assets": { "directory": "./public", "binding": "ASSETS", "html_handling": "none", "run_worker_first": ["/api/*"] },
+  "durable_objects": { "bindings": [{ "name": "SURVIVAL", "class_name": "SurvivalRoom" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["SurvivalRoom"] }],
+  "triggers": { "crons": ["* * * * *"] },
+  "vars": { "ALLOWED_ORIGINS": "https://winsufix2.github.io" }
+}
