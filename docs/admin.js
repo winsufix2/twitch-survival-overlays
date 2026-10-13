@@ -1,4 +1,5 @@
 import {backend,widgetUrl,request,subscribe} from './client.js';
+import {donationTime,donationAmount} from './donation-display.js';
 const $=id=>document.getElementById(id),keyName=()=> 'survival-admin-key:'+backend();
 let state,receivedAt=performance.now(),stop;
 function toast(text){$('toast').textContent=text;}
@@ -15,9 +16,10 @@ function receive(s){
   $('location').value=s.selected;$('flat').classList.toggle('selected',s.style==='flat');$('relief').classList.toggle('selected',s.style==='relief');$('style-status').textContent=s.style==='flat'?'Включено прежнее плоское оформление':'Включены объёмные надписи с рельефом и тенью';
   const rows=document.createDocumentFragment();
   for(const d of s.donations||[]){
-    const row=document.createElement('tr');const when=new Date(d.receivedAt).toLocaleTimeString('ru-RU',{timeZone:'Europe/Moscow',hour:'2-digit',minute:'2-digit',second:'2-digit'});
-    const values=[when,d.username,d.amount.toLocaleString('ru-RU')+' '+(d.currency==='RUB'?'₽':d.currency),'+'+d.addedMinutes+' мин'];
+    const row=document.createElement('tr');const when=donationTime(d);
+    const values=[when.text,d.username,donationAmount(d),'+'+d.addedMinutes+' мин'];
     for(const v of values){const cell=document.createElement('td');cell.textContent=v;row.append(cell);}
+    row.firstElementChild.title=when.title;
     const cell=document.createElement('td'),tag=document.createElement('span');tag.className='tag';tag.textContent={real:'Донат',test:'Тест',before:'До подключения',other:'Другая валюта'}[d.kind]||d.kind;cell.append(tag);row.append(cell);rows.append(row);
   }
   $('donations').replaceChildren(rows);$('empty').hidden=Boolean(s.donations?.length);
