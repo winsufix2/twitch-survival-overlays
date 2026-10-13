@@ -3,7 +3,7 @@ export async function collectDonations(state,token,fetcher=fetch) {
   async function request(page){
     const r=await fetcher(`https://www.donationalerts.com/api/v1/alerts/donations?page=${page}`,{
       headers:{Authorization:`Bearer ${token}`,Accept:'application/json'},signal:AbortSignal.timeout(12000)});
-    if(!r.ok)throw Error(r.status===401?'Авторизация DonationAlerts истекла — обновите токен':`Ошибка DonationAlerts (${r.status})`);
+    if(!r.ok){const error=new Error(r.status===401?'Авторизация DonationAlerts истекла — обновите токен':`Ошибка DonationAlerts (${r.status})`);error.status=r.status;throw error;}
     const data=await r.json();if(!Array.isArray(data.data))throw Error('Неожиданный ответ DonationAlerts');return data;
   }
   const first=await request(1);
