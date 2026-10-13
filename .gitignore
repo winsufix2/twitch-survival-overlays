@@ -1,0 +1,9 @@
+private/
+node_modules/
+*.log
+.dev.vars
+.env*
+.wrangler/
+.playwright-cli/
+output/
+exports/
