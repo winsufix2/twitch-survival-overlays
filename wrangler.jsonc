@@ -4,7 +4,7 @@
   "main": "cloud/worker.mjs",
   "compatibility_date": "2026-10-13",
   "workers_dev": true,
-  "assets": { "directory": "./public", "binding": "ASSETS", "html_handling": "none", "run_worker_first": ["/api/*"] },
+  "assets": { "directory": "./public", "binding": "ASSETS", "html_handling": "none", "run_worker_first": ["/api/*", "/assets/stream-banner.mp4"] },
   "durable_objects": { "bindings": [{ "name": "SURVIVAL", "class_name": "SurvivalRoom" }] },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["SurvivalRoom"] }],
   "triggers": { "crons": ["* * * * *"] },

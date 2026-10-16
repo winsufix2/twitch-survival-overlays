@@ -3,11 +3,13 @@ import {restoreState,publicView,adminView,control} from '../engine.mjs';
 import {collectDonations,applyBatch} from '../donationalerts.mjs';
 import {authorized,originAllowed} from '../security.mjs';
 import {authorizationUrl,returnAddress,validChallenge,tokenRequest,DONATION_SCOPE} from '../oauth.mjs';
+import {videoResponse} from './media.mjs';
 
 function json(value,status=200){return Response.json(value,{status,headers:{'Cache-Control':'no-store'}});}
 export default {
   async fetch(request,env){
     const url=new URL(request.url);
+    if(url.pathname==='/assets/stream-banner.mp4'&&['GET','HEAD'].includes(request.method))return videoResponse(request,env.ASSETS);
     if(!url.pathname.startsWith('/api/'))return env.ASSETS.fetch(request);
     const origin=request.headers.get('Origin');
     if(!originAllowed(origin,url,env.ALLOWED_ORIGINS))return json({error:'Этот сайт не разрешён для управления'},403);
