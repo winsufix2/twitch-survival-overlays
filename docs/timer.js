@@ -1,4 +1,4 @@
-import {subscribe} from './client.js';
+import {subscribe} from './client.js?v=live-1';
 let timerState={remainingMs:36000000,running:false},receivedAt=performance.now(),lastMinutes=null;
 function receive(s){
   const override=new URLSearchParams(location.search).get('style');

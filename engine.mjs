@@ -9,8 +9,17 @@ export function initialState() {
       {id:'house3',label:'Дом 3',type:'house',x:45,y:49},
       {id:'house4',label:'Дом 4',type:'house',x:29,y:66},
       {id:'house5',label:'Дом 5',type:'house',x:67,y:59},
-      {id:'bath',label:'Баня',type:'bath',x:53,y:76}
+      {id:'bath',label:'Баня',type:'bath',x:53,y:76},
+      {id:'stop',label:'Остановка',type:'stop',x:32,y:48}
     ]};
+}
+export function restoreState(saved={}) {
+  const state={...initialState(),...saved};
+  state.buildings=state.buildings.map(b=>({...b}));
+  // Extend existing maps without moving any of the owner's saved buildings.
+  if(!state.buildings.some(b=>b.id==='stop'))
+    state.buildings.push({...initialState().buildings.find(b=>b.id==='stop')});
+  return state;
 }
 export function remaining(state, now=Date.now()) {
   return Math.max(0, state.running ? state.endAt-now : state.remainingMs);
@@ -46,7 +55,7 @@ export function recordDonation(state, donation, minutes, kind='real', now=Date.n
   state.donations=state.donations.slice(0,100);
 }
 export function publicView(state,now=Date.now()) {
-  return {remainingMs:remaining(state,now),running:state.running,serverNow:now,
+  return {remainingMs:remaining(state,now),running:state.running,serverNow:now,revision:state.revision||0,
     selected:state.selected,buildings:state.buildings,style:state.style||'flat',addedMinutes:state.addedMinutes};
 }
 export function adminView(state,now=Date.now()) {

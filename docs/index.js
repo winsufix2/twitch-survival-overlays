@@ -1,5 +1,5 @@
-import {widgetUrl,backend} from './client.js';
-for(const type of ['timer','map']){const url=widgetUrl(type+'.html');document.getElementById(type+'-link').href=url;document.getElementById(type+'-preview').src=url;document.getElementById(type+'-address').textContent=url;}
+import {widgetUrl,backend} from './client.js?v=live-1';
+for(const type of ['timer','map','banner']){const url=widgetUrl(type+'.html');document.getElementById(type+'-link').href=url;document.getElementById(type+'-preview').src=url;document.getElementById(type+'-address').textContent=url;}
 document.getElementById('admin-link').href=widgetUrl('admin.html');document.getElementById('preview-link').href=widgetUrl('preview.html');document.getElementById('api').value=backend();
 document.querySelectorAll('[data-copy]').forEach(el=>el.onclick=async()=>{try{await navigator.clipboard.writeText(document.getElementById(el.dataset.copy).href);document.getElementById('toast').textContent='Ссылка скопирована';}catch{document.getElementById('toast').textContent='Скопируй ссылку из адресной строки';}});
 document.getElementById('connect').onclick=()=>{try{const u=new URL(document.getElementById('api').value);if(u.protocol!=='https:'&&!['127.0.0.1','localhost'].includes(u.hostname))throw Error('Нужен HTTPS-адрес');const next=new URL(location.href);next.searchParams.set('api',u.origin);location.href=next.href;}catch(e){document.getElementById('toast').textContent=e.message;}};

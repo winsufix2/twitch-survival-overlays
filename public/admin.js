@@ -1,10 +1,10 @@
-import {backend,widgetUrl,request,subscribe} from './client.js';
+import {backend,widgetUrl,request,subscribe} from './client.js?v=live-1';
 import {donationTime,donationAmount} from './donation-display.js';
 const $=id=>document.getElementById(id),keyName=()=> 'survival-admin-key:'+backend();
 let state,receivedAt=performance.now(),stop;
 function toast(text){$('toast').textContent=text;}
 function key(){return sessionStorage.getItem(keyName())||'';}
-function links(){for(const type of ['timer','map']){$(type+'-link').href=widgetUrl(type+'.html');$(type+'-preview').src=widgetUrl(type+'.html');}}
+function links(){for(const type of ['timer','map','banner']){$(type+'-link').href=widgetUrl(type+'.html');if($(type+'-preview'))$(type+'-preview').src=widgetUrl(type+'.html');}}
 links();$('api').value=backend();
 $('callback-address').value=backend()+'/api/donation/callback';$('application-site').textContent=backend();
 function clock(){if(!state)return;const sec=Math.ceil(Math.max(0,state.remainingMs-(state.running?performance.now()-receivedAt:0))/1000);$('clock').textContent=[Math.floor(sec/3600),Math.floor(sec%3600/60),sec%60].map(x=>String(x).padStart(2,'0')).join(':');}
@@ -12,7 +12,7 @@ function receive(s){
   state=s;receivedAt=performance.now();clock();$('running').textContent=s.running?'Отсчёт идёт':'На паузе';$('da').textContent=s.daStatus;$('da').classList.toggle('ok',s.daConnected);
   $('oauth-connect').hidden=!s.oauthReady;$('oauth-setup').hidden=Boolean(s.oauthReady)||['127.0.0.1','localhost'].includes(new URL(backend()).hostname);
   $('total').textContent=s.addedMinutes+' мин';$('remainder').textContent=(s.donationRemainder/100).toLocaleString('ru-RU')+' ₽';
-  if(!$('location').options.length){for(const id of ['location','building'])for(const b of s.buildings){const opt=document.createElement('option');opt.value=b.id;opt.textContent=b.label;$(id).append(opt);}fillPosition();}
+  if($('location').options.length!==s.buildings.length){for(const id of ['location','building']){const previous=$(id).value;$(id).replaceChildren();for(const b of s.buildings){const opt=document.createElement('option');opt.value=b.id;opt.textContent=b.label;$(id).append(opt);}if(previous)$(id).value=previous;}fillPosition();}
   $('location').value=s.selected;$('flat').classList.toggle('selected',s.style==='flat');$('relief').classList.toggle('selected',s.style==='relief');$('style-status').textContent=s.style==='flat'?'Включено прежнее плоское оформление':'Включены объёмные надписи с рельефом и тенью';
   const rows=document.createDocumentFragment();
   for(const d of s.donations||[]){

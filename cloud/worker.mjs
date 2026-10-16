@@ -1,5 +1,5 @@
 import {DurableObject} from 'cloudflare:workers';
-import {initialState,publicView,adminView,control} from '../engine.mjs';
+import {restoreState,publicView,adminView,control} from '../engine.mjs';
 import {collectDonations,applyBatch} from '../donationalerts.mjs';
 import {authorized,originAllowed} from '../security.mjs';
 import {authorizationUrl,returnAddress,validChallenge,tokenRequest,DONATION_SCOPE} from '../oauth.mjs';
@@ -14,6 +14,7 @@ export default {
     let response;
     if(request.method==='OPTIONS')response=new Response(null,{status:204});
     else response=await env.SURVIVAL.getByName('main').fetch(request);
+    if(response.status===101)return response;
     const headers=new Headers(response.headers);
     if(origin){headers.set('Access-Control-Allow-Origin',origin);headers.set('Vary','Origin');}
     headers.set('Access-Control-Allow-Methods','GET, POST, OPTIONS');
@@ -27,13 +28,26 @@ export class SurvivalRoom extends DurableObject {
   constructor(ctx,env){
     super(ctx,env);this.ctx=ctx;this.env=env;this.queue=Promise.resolve();
     ctx.blockConcurrencyWhile(async()=>{
-      this.state={...initialState(),...await ctx.storage.get('state')};
+      this.state=restoreState(await ctx.storage.get('state'));
       this.token=await ctx.storage.get('donationToken')||env.DONATIONALERTS_ACCESS_TOKEN||'';
       this.oauthApp=await ctx.storage.get('oauthApp');this.oauthTokens=await ctx.storage.get('oauthTokens');
     });
   }
   async locked(task){const next=this.queue.then(task);this.queue=next.catch(()=>{});return next;}
-  async save(){await this.ctx.storage.put('state',this.state);}
+  async save(){
+    this.state.revision=(this.state.revision||0)+1;
+    await this.ctx.storage.put('state',this.state);
+    const message=JSON.stringify({type:'state',state:publicView(this.state)});
+    for(const socket of this.ctx.getWebSockets()){
+      try{socket.send(message);}catch{try{socket.close(1011,'Reconnect');}catch{}}
+    }
+  }
+  webSocketMessage(socket,message){
+    if(message==='sync')socket.send(JSON.stringify({type:'state',state:publicView(this.state)}));
+    else socket.close(1008,'Read-only connection');
+  }
+  webSocketClose(socket,code,reason){try{socket.close(code,reason);}catch{}}
+  webSocketError(socket){try{socket.close(1011,'Reconnect');}catch{}}
   admin(){return {...adminView(this.state),oauthReady:Boolean(this.oauthApp)};}
   async saveTokens(tokens){
     this.token=tokens.accessToken;this.oauthTokens={refreshToken:tokens.refreshToken,expiresAt:tokens.expiresAt};
@@ -48,6 +62,14 @@ export class SurvivalRoom extends DurableObject {
   async fetch(request){
     const url=new URL(request.url);
     try{
+      if(request.method==='GET'&&url.pathname==='/api/live'){
+        if(request.headers.get('Upgrade')?.toLowerCase()!=='websocket')return json({error:'WebSocket required'},426);
+        const [client,server]=Object.values(new WebSocketPair());
+        this.ctx.acceptWebSocket(server);
+        // Public data only: administrative reads still require the bearer key.
+        server.send(JSON.stringify({type:'state',state:publicView(this.state)}));
+        return new Response(null,{status:101,webSocket:client});
+      }
       if(request.method==='GET'&&url.pathname==='/api/state')return json(publicView(this.state));
       // /api/wake is harmless if invoked publicly: it only restores a missing alarm.
       if(url.pathname==='/api/wake'){if(!await this.ctx.storage.getAlarm())await this.schedule();return json({ok:true});}

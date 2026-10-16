@@ -1,5 +1,5 @@
 import {test} from 'node:test';import assert from 'node:assert/strict';
-import {initialState,remaining,control,publicView,adminView,applyDonation} from '../engine.mjs';
+import {initialState,restoreState,remaining,control,publicView,adminView,applyDonation} from '../engine.mjs';
 import {collectDonations,applyBatch} from '../donationalerts.mjs';
 import {authorized,originAllowed} from '../security.mjs';
 test('Custom time works while paused and running; invalid time is rejected',()=>{
@@ -39,4 +39,15 @@ test('Admin authentication is required; only allowed origins pass',()=>{
 test('Style rollback and positions are validated; history is bounded',()=>{
   const s=initialState();control(s,{action:'style',style:'flat'});assert.equal(s.style,'flat');control(s,{action:'select',id:'bath'});assert.equal(s.selected,'bath');
   assert.throws(()=>control(s,{action:'move',id:'bath',x:100,y:0}));for(let i=0;i<110;i++)control(s,{action:'testDonation',amount:10},i);assert.equal(s.donations.length,100);
+});
+
+test('Existing maps gain one selectable stop without resetting their saved session',()=>{
+  const saved=initialState();saved.buildings=saved.buildings.filter(b=>b.id!=='stop');
+  saved.buildings[0].x=27;saved.remainingMs=1234000;saved.selected='bath';
+  saved.donations=[{id:'preserve'}];saved.donationRemainder=500;
+  const restored=restoreState(saved),again=restoreState(restored);
+  assert.equal(saved.buildings.length,6);assert.equal(again.buildings.length,7);
+  assert.equal(again.buildings[0].x,27);assert.equal(again.remainingMs,1234000);
+  assert.deepEqual(again.donations,saved.donations);assert.equal(again.donationRemainder,500);
+  control(again,{action:'select',id:'stop'});assert.equal(publicView(again).selected,'stop');
 });

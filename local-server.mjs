@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import {fileURLToPath} from 'node:url';
-import {initialState,publicView,adminView,control} from './engine.mjs';
+import {restoreState,publicView,adminView,control} from './engine.mjs';
 import {collectDonations,applyBatch} from './donationalerts.mjs';
 import {authorized,originAllowed} from './security.mjs';
 const root=path.dirname(fileURLToPath(import.meta.url)),port=Number(process.env.PORT||8766);
@@ -12,13 +12,13 @@ const keyFile=path.join(privateDir,'admin-key.txt');
 if(!fs.existsSync(keyFile))fs.writeFileSync(keyFile,crypto.randomBytes(24).toString('hex'));
 const key=process.env.ADMIN_KEY||fs.readFileSync(keyFile,'utf8').trim();
 const stateFile=path.join(privateDir,'state.json'),tokenFile=path.join(privateDir,'donation-token.txt');
-let state={...initialState(),...(fs.existsSync(stateFile)?JSON.parse(fs.readFileSync(stateFile,'utf8')):{})};
+let state=restoreState(fs.existsSync(stateFile)?JSON.parse(fs.readFileSync(stateFile,'utf8')):{});
 let token=process.env.DONATIONALERTS_ACCESS_TOKEN||(fs.existsSync(tokenFile)?fs.readFileSync(tokenFile,'utf8').trim():'');
 let queue=Promise.resolve();function locked(task){const next=queue.then(task);queue=next.catch(()=>{});return next;}
-function save(){const temp=stateFile+'.tmp';fs.writeFileSync(temp,JSON.stringify(state,null,2));fs.renameSync(temp,stateFile);}
+function save(){state.revision=(state.revision||0)+1;const temp=stateFile+'.tmp';fs.writeFileSync(temp,JSON.stringify(state,null,2));fs.renameSync(temp,stateFile);}
 function json(res,value,status=200){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(value));}
 async function body(req){let s='';for await(const c of req){s+=c;if(s.length>16384)throw Error('Слишком большой запрос');}return JSON.parse(s||'{}');}
-const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.ttf':'font/ttf','.woff2':'font/woff2','.svg':'image/svg+xml'};
+const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.ttf':'font/ttf','.woff2':'font/woff2','.svg':'image/svg+xml','.mp4':'video/mp4'};
 http.createServer(async(req,res)=>{
   try{
     const u=new URL(req.url,origin);
